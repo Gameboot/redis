@@ -44,15 +44,18 @@ typedef char *sds;
 
 /* Note: sdshdr5 is never used, we just access the flags byte directly.
  * However is here to document the layout of type 5 SDS strings. */
+//用于存放字符串长度低于2^5=32的字符串，目前未使用。
+//__packed__ 用于取消结构体 内存对齐规则  1：节约内存 2：可以方便的访问结构体元素。
 struct __attribute__ ((__packed__)) sdshdr5 {
-    unsigned char flags; /* 3 lsb of type, and 5 msb of string length */
+    unsigned char flags; /* 前3位存放储存类型 后5位存储长度 */
     char buf[];
 };
+//下面几种用来存放长度超过32的字符串
 struct __attribute__ ((__packed__)) sdshdr8 {
-    uint8_t len; /* used */
-    uint8_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
+    uint8_t len; /* 已经使用长度 */
+    uint8_t alloc; /* 总长度 2^8 */
+    unsigned char flags; /* 前3位存放储存类型 后5位预留 */
+    char buf[]; //存放实际内容
 };
 struct __attribute__ ((__packed__)) sdshdr16 {
     uint16_t len; /* used */

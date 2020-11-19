@@ -193,31 +193,38 @@ void sdsclear(sds s) {
  * by sdslen(), but only the free buffer space we have. */
 sds sdsMakeRoomFor(sds s, size_t addlen) {
     void *sh, *newsh;
+    //获取s当前剩余空间 alloc-len
     size_t avail = sdsavail(s);
     size_t len, newlen;
     char type, oldtype = s[-1] & SDS_TYPE_MASK;
     int hdrlen;
 
     /* Return ASAP if there is enough space left. */
+    //剩余空间够用 直接返回
     if (avail >= addlen) return s;
 
     len = sdslen(s);
     sh = (char*)s-sdsHdrSize(oldtype);
+    //新s的长度
     newlen = (len+addlen);
+    //如果新的长度 小于1M
     if (newlen < SDS_MAX_PREALLOC)
-        newlen *= 2;
+        newlen *= 2;  //新长度2倍扩容
     else
-        newlen += SDS_MAX_PREALLOC;
+        newlen += SDS_MAX_PREALLOC; //不然直接新的长度基础上加1M
 
+    //扩容后的长度 计算新类型
     type = sdsReqType(newlen);
 
     /* Don't use type 5: the user is appending to the string and type 5 is
      * not able to remember empty space, so sdsMakeRoomFor() must be called
      * at every appending operation. */
+    //还是一样 type5 直接转到 type 8
     if (type == SDS_TYPE_5) type = SDS_TYPE_8;
 
     hdrlen = sdsHdrSize(type);
     if (oldtype==type) {
+        //如果类型没变，直接realloc动态扩容。时间复杂度O(n)
         newsh = s_realloc(sh, hdrlen+newlen+1);
         if (newsh == NULL) {
             s_free(sh);
@@ -227,6 +234,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
     } else {
         /* Since the header size changes, need to move the string forward,
          * and can't use realloc */
+        //类型变了 要重新开辟内存 无法直接realloc
         newsh = s_malloc(hdrlen+newlen+1);
         if (newsh == NULL) return NULL;
         memcpy((char*)newsh+hdrlen, s, len+1);
@@ -378,11 +386,14 @@ sds sdsgrowzero(sds s, size_t len) {
  * references must be substituted with the new pointer returned by the call. */
 sds sdscatlen(sds s, const void *t, size_t len) {
     size_t curlen = sdslen(s);
-
+    //确保s剩余空间可以拼接t
     s = sdsMakeRoomFor(s,len);
     if (s == NULL) return NULL;
+    //拼接s+t
     memcpy(s+curlen, t, len);
+    //重新设置len
     sdssetlen(s, curlen+len);
+    //末尾添加'\0'
     s[curlen+len] = '\0';
     return s;
 }

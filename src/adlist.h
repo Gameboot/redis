@@ -45,11 +45,17 @@ typedef struct listIter {
 } listIter;
 
 typedef struct list {
+    //头
     listNode *head;
+    //尾
     listNode *tail;
+    // 节点值复制函数
     void *(*dup)(void *ptr);
+    // 节点值释放函数
     void (*free)(void *ptr);
+    // 节点值对比函数
     int (*match)(void *ptr, void *key);
+    //链表包含节点数
     unsigned long len;
 } list;
 

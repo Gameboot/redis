@@ -38,12 +38,20 @@
  * by the user before to call AlFreeList().
  *
  * On error, NULL is returned. Otherwise the pointer to the new list. */
+/*
+ * 创建一个新的链表
+ *
+ * 创建成功返回链表，失败返回 NULL 。
+ *
+ * T = O(1)
+ */
 list *listCreate(void)
 {
     struct list *list;
 
     if ((list = zmalloc(sizeof(*list))) == NULL)
         return NULL;
+    //初始化
     list->head = list->tail = NULL;
     list->len = 0;
     list->dup = NULL;
@@ -53,6 +61,7 @@ list *listCreate(void)
 }
 
 /* Remove all the elements from the list without destroying the list itself. */
+//清空list，但不释放list   O(N)
 void listEmpty(list *list)
 {
     unsigned long len;
@@ -73,6 +82,7 @@ void listEmpty(list *list)
 /* Free the whole list.
  *
  * This function can't fail. */
+//清空并释放 list O(N)
 void listRelease(list *list)
 {
     listEmpty(list);
